@@ -8,9 +8,10 @@
 ## 🚀 两种使用方式
 
 ### 方式一：下载单文件（推荐，离线可用、不受网络限制）
-1. 点击本仓库中的 **`学习复习助手.html`** 文件 → 右上角 **Download**（下载原始文件）。
-   - 或到 **Releases** 页面下载附件。
-2. 下载后**双击**该文件，用浏览器（推荐 Chrome / Edge）打开即可使用。
+1. 点击下方**一键下载**链接，直接获取最新版：
+   ⬇️ https://github.com/cuiyitao/study-review-helper-release/releases/latest/download/study-review-helper.html
+   - （也可进入仓库的 **Releases** 页面，或点击仓库里的 `学习复习助手.html` → 右上角 **Download**）
+2. 下载后**双击**该文件，用浏览器（推荐 Chrome / Edge）打开即可使用。文件名可任意改成中文，不影响使用。
 
 ### 方式二：在线访问（需能访问该域名）
 🔗 https://study-review-helper.vercel.app
