@@ -1,0 +1,1747 @@
+<!DOCTYPE html>
+<!--
+  学习复习助手 · 单文件版
+  构建时间：2026-10-28T10:49:01.188Z
+
+  使用方式：
+  1. 双击本文件，用任意现代浏览器（Chrome/Edge/Firefox）打开即可使用
+  2. 所有数据保存在打开它的浏览器本地（localStorage），不联网、不上传
+  3. 手机可用：传到手机后用浏览器打开，再"添加到主屏幕"当 App 使用
+  4. 换设备时：统计页 → 数据备份 → 导出，在新设备导入即可迁移
+
+  本文件由 build-single.js 从源码自动生成，请勿手工编辑；
+  更新请到 https://study-review-helper.vercel.app 或源码仓库重新构建。
+-->
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <!-- 让页面在手机上也能正常显示 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学习复习助手</title>
+  <!-- 引入样式文件 -->
+  <style>
+/* ===== 内联样式（构建脚本自动嵌入：css/style.css）===== */
+/* ====================================================
+   学习复习助手 - 全局样式
+   初学者友好：每个区块都有注释说明用途
+   ==================================================== */
+
+/* ---------- 基础设置 ---------- */
+* {
+  box-sizing: border-box;      /* 宽度包含内边距和边框，布局更直观 */
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* 定义主题色变量，改一处即可全局换色 */
+  --primary: #4f6ef7;
+  --primary-light: #eef1fe;
+  --warn: #f7a94f;
+  --danger: #e05b5b;
+  --text: #2c3040;
+  --text-light: #8a90a3;
+  --border: #e4e7f0;
+  --bg: #f5f6fa;
+  --card-bg: #ffffff;
+  --radius: 12px;
+}
+
+body {
+  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ---------- 顶部导航栏 ---------- */
+.navbar {
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  position: sticky;   /* 滚动时固定在顶部 */
+  top: 0;
+  z-index: 10;
+}
+
+.navbar-title {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.navbar-tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.tab-btn {
+  border: none;
+  background: transparent;
+  padding: 8px 16px;
+  font-size: 15px;
+  color: var(--text-light);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover { background: var(--primary-light); }
+
+.tab-btn.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* ---------- 页面容器与切换 ---------- */
+.container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+}
+
+.view { animation: fadeIn 0.25s ease; }
+
+.view.hidden { display: none; }   /* 未激活的页面整体隐藏 */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.date-banner {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 14px;
+  color: var(--text);
+}
+
+/* ---------- 卡片 ---------- */
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 4px rgba(30, 40, 90, 0.06);
+}
+
+.card-title {
+  font-size: 17px;
+  margin-bottom: 12px;
+}
+
+.card-desc {
+  font-size: 13px;
+  color: var(--text-light);
+  margin-bottom: 10px;
+}
+
+.badge {
+  display: inline-block;
+  background: var(--danger);
+  color: #fff;
+  font-size: 12px;
+  border-radius: 999px;
+  padding: 1px 9px;
+  vertical-align: middle;
+}
+
+/* ---------- 表单元素 ---------- */
+.inline-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.inline-form input[type="text"] { flex: 1; }
+
+.stack-form { display: flex; flex-direction: column; gap: 10px; }
+
+input[type="text"], textarea {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text);
+  background: #fafbfd;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+  resize: vertical;   /* 文本域只允许纵向拉伸 */
+}
+
+input[type="text"]:focus, textarea:focus {
+  border-color: var(--primary);
+  background: #fff;
+}
+
+.checkbox-label {
+  font-size: 14px;
+  color: var(--text-light);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.search-box { margin-bottom: 12px; }
+
+/* ---------- 按钮 ---------- */
+.btn {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;   /* 按钮文字不换行 */
+}
+
+.btn:hover { filter: brightness(0.95); }
+
+.btn-primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.btn-warn {
+  background: var(--warn);
+  border-color: var(--warn);
+  color: #fff;
+}
+
+.btn-danger {
+  background: none;
+  border: none;
+  color: var(--danger);
+  padding: 4px 8px;
+  font-size: 13px;
+}
+
+.btn-sm { padding: 5px 12px; font-size: 13px; }
+
+/* ---------- 任务列表 ---------- */
+.item-list { list-style: none; }
+
+.item-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 6px;
+  border-bottom: 1px solid var(--border);
+  font-size: 15px;
+}
+
+.item-list li:last-child { border-bottom: none; }
+
+.item-list input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);   /* 勾选框主题色 */
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.task-text { flex: 1; word-break: break-all; }
+
+.task-done .task-text {
+  text-decoration: line-through;   /* 完成的任务加删除线 */
+  color: var(--text-light);
+}
+
+.empty-tip {
+  color: var(--text-light);
+  font-size: 14px;
+  text-align: center;
+  padding: 14px 0;
+}
+
+/* ---------- 错题 / 复习 / 笔记 卡片 ---------- */
+.content-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 10px;
+  background: #fafbfd;
+}
+
+.content-card.due {
+  border-color: var(--primary);
+  background: var(--primary-light);   /* 今天到期的复习项高亮 */
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.subject-tag {
+  background: var(--primary);
+  color: #fff;
+  font-size: 12px;
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+
+.tag {
+  background: var(--primary-light);
+  color: var(--primary);
+  font-size: 12px;
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+
+.round-info {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-left: auto;
+}
+
+.card-line {
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 6px;
+  word-break: break-all;
+  white-space: pre-wrap;   /* 保留用户输入的换行 */
+}
+
+.card-line .label {
+  color: var(--text-light);
+  font-size: 12px;
+  display: block;
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.next-review {
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+/* ---------- 图片上传与展示 ---------- */
+.img-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.img-hint {
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+/* 表单中的待上传图片预览区 */
+.img-preview {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.img-preview:empty { display: none; }   /* 没有图片时不占空间 */
+
+.preview-item {
+  position: relative;
+  width: 76px;
+  height: 76px;
+}
+
+.preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;        /* 裁剪填满，保证缩略图整齐 */
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  display: block;
+}
+
+/* 缩略图右上角的删除小按钮 */
+.preview-del {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  background: var(--danger);
+  color: #fff;
+  font-size: 11px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* 错题/笔记卡片内的附图行 */
+.thumb-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 6px 0;
+}
+
+.thumb-item { position: relative; width: 76px; height: 76px; }
+
+.thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  display: block;
+  cursor: zoom-in;          /* 鼠标样式提示可放大 */
+}
+
+/* 复习弹窗内的附图（较大尺寸展示） */
+.modal-imgs { margin-top: 10px; }
+
+.modal-imgs .label {
+  color: var(--text-light);
+  font-size: 12px;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.modal-img {
+  max-width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  margin-bottom: 8px;
+  display: block;
+  cursor: zoom-in;
+}
+
+/* 点击放大遮罩：图片居中、自适应屏幕 */
+#lightbox {
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-out;
+}
+
+#lightbox-img {
+  max-width: 92vw;
+  max-height: 88vh;
+  border-radius: 8px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  background: #fff;
+}
+
+/* ---------- 统计页 ---------- */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.stat-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 18px 12px;
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(30, 40, 90, 0.06);
+}
+
+.stat-num {
+  font-size: 28px;
+  font-weight: bold;
+  color: var(--primary);
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--text-light);
+  margin-top: 4px;
+}
+
+/* 数据备份概览文本 */
+.backup-info {
+  font-size: 13px;
+  color: var(--text-light);
+  background: var(--primary-light);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+/* 30 天日历格子 */
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 6px;
+}
+
+.cal-cell {
+  aspect-ratio: 1;          /* 正方形格子 */
+  border-radius: 6px;
+  background: var(--border);
+  position: relative;
+  cursor: default;
+}
+
+/* 活跃程度用不同深度表示（由 JS 添加 cal-1/2/3 类） */
+.cal-cell.cal-1 { background: #c3ccf9; }
+.cal-cell.cal-2 { background: #8b9cf5; }
+.cal-cell.cal-3 { background: var(--primary); }
+
+/* ---------- 弹窗 ---------- */
+.modal {
+  position: fixed;
+  inset: 0;                /* 铺满整个视口 */
+  background: rgba(20, 25, 50, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+
+.modal.hidden { display: none; }
+
+.modal-box {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 22px;
+  max-width: 560px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-box h3 { margin-bottom: 12px; font-size: 17px; }
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+/* ---------- 页脚 ---------- */
+.footer {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-light);
+  padding: 20px 0 30px;
+}
+
+/* ---------- 移动端适配 ---------- */
+@media (max-width: 600px) {
+  .navbar { justify-content: center; }
+  .inline-form { flex-direction: column; }
+  .calendar { grid-template-columns: repeat(6, 1fr); }
+}
+
+</style>
+</head>
+<body>
+
+  <!-- ============ 顶部导航栏 ============ -->
+  <header class="navbar">
+    <div class="navbar-title">📚 学习复习助手</div>
+    <nav class="navbar-tabs">
+      <!-- data-view 属性标记要切换到哪个页面区块 -->
+      <button class="tab-btn active" data-view="view-today">今日</button>
+      <button class="tab-btn" data-view="view-wrongbook">错题本</button>
+      <button class="tab-btn" data-view="view-notes">笔记</button>
+      <button class="tab-btn" data-view="view-stats">统计</button>
+    </nav>
+  </header>
+
+  <main class="container">
+
+    <!-- ============ 页面 1：今日（学习清单 + 到期复习） ============ -->
+    <section id="view-today" class="view">
+      <div class="date-banner" id="today-date"></div>
+
+      <!-- 今日学习清单 -->
+      <div class="card">
+        <h2 class="card-title">✅ 今日学习清单</h2>
+        <form id="task-form" class="inline-form">
+          <input type="text" id="task-input" placeholder="今天要学什么？例如：复习第二章公式" required maxlength="100">
+          <button type="submit" class="btn btn-primary">添加</button>
+        </form>
+        <ul id="task-list" class="item-list"><!-- 任务项由 JS 动态渲染 --></ul>
+        <p id="task-empty" class="empty-tip">还没有任务，添加一个开始今天的学习吧～</p>
+      </div>
+
+      <!-- 今日到期复习队列（来自错题本和笔记） -->
+      <div class="card">
+        <h2 class="card-title">🔁 今日待复习 <span id="review-count" class="badge">0</span></h2>
+        <p class="card-desc">根据遗忘曲线，以下内容今天需要重申：</p>
+        <div id="review-list"><!-- 复习卡片由 JS 动态渲染 --></div>
+        <p id="review-empty" class="empty-tip">今天没有到期的复习内容 🎉</p>
+      </div>
+    </section>
+
+    <!-- ============ 页面 2：错题本 ============ -->
+    <section id="view-wrongbook" class="view hidden">
+      <div class="card">
+        <h2 class="card-title">📝 记录一道错题</h2>
+        <form id="wrong-form" class="stack-form">
+          <input type="text" id="wrong-subject" placeholder="科目/主题（例如：数学、C++指针）" required maxlength="30">
+          <textarea id="wrong-question" placeholder="错题内容（题目、错误表现等）" rows="3" required maxlength="2000"></textarea>
+          <textarea id="wrong-thinking" placeholder="当时的思路 / 正确解法（复习时会一并重申）" rows="3" required maxlength="2000"></textarea>
+          <!-- 图片上传：input 隐藏，由"添加图片"按钮触发点击 -->
+          <input type="file" id="wrong-img-input" accept="image/*" multiple hidden>
+          <div class="img-row">
+            <button type="button" id="wrong-img-btn" class="btn">🖼 添加图片（题目截图等）</button>
+            <span class="img-hint">已压缩保存，单张约 100~300KB</span>
+          </div>
+          <!-- 待上传图片的预览区，由 JS 填充 -->
+          <div id="wrong-img-preview" class="img-preview"></div>
+          <button type="submit" class="btn btn-primary">保存并按遗忘曲线安排复习</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">📕 错题归档</h2>
+        <input type="text" id="wrong-search" class="search-box" placeholder="🔍 搜索错题（科目或内容）">
+        <div id="wrong-list"><!-- 错题卡片由 JS 动态渲染 --></div>
+        <p id="wrong-list-empty" class="empty-tip">错题本还是空的，把今天的错题记进来吧。</p>
+      </div>
+    </section>
+
+    <!-- ============ 页面 3：笔记 ============ -->
+    <section id="view-notes" class="view hidden">
+      <div class="card">
+        <h2 class="card-title">💡 新建笔记</h2>
+        <form id="note-form" class="stack-form">
+          <div class="inline-form">
+            <input type="text" id="note-title" placeholder="标题" required maxlength="60">
+            <input type="text" id="note-tags" placeholder="标签（用空格分隔，例如：英语 单词）" maxlength="60">
+          </div>
+          <textarea id="note-content" placeholder="知识内容、要点、心得……" rows="4" required maxlength="5000"></textarea>
+          <input type="file" id="note-img-input" accept="image/*" multiple hidden>
+          <div class="img-row">
+            <button type="button" id="note-img-btn" class="btn">🖼 添加图片</button>
+            <span class="img-hint">截图、板书、思维导图等</span>
+          </div>
+          <div id="note-img-preview" class="img-preview"></div>
+          <label class="checkbox-label">
+            <input type="checkbox" id="note-review"> 需要按遗忘曲线复习这条笔记
+          </label>
+          <button type="submit" class="btn btn-primary">保存笔记</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">📒 我的笔记</h2>
+        <input type="text" id="note-search" class="search-box" placeholder="🔍 搜索标题 / 内容 / 标签">
+        <div id="note-list"><!-- 笔记卡片由 JS 动态渲染 --></div>
+        <p id="note-list-empty" class="empty-tip">还没有笔记。</p>
+      </div>
+    </section>
+
+    <!-- ============ 页面 4：统计 ============ -->
+    <section id="view-stats" class="view hidden">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-num" id="stat-streak">0</div><div class="stat-label">连续打卡（天）</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-total-days">0</div><div class="stat-label">累计学习（天）</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-task-rate">0%</div><div class="stat-label">任务完成率</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-wrong">0</div><div class="stat-label">错题总数</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-review-done">0</div><div class="stat-label">累计复习（次）</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-notes">0</div><div class="stat-label">笔记总数</div></div>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">📅 最近 30 天学习日历</h2>
+        <p class="card-desc">颜色越深，当天完成的复习/任务越多</p>
+        <div id="calendar" class="calendar"></div>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">🔥 今日打卡</h2>
+        <p class="card-desc" id="checkin-desc"></p>
+        <button id="checkin-btn" class="btn btn-primary">打卡</button>
+      </div>
+
+      <!-- ============ 数据备份：导出 / 导入 ============ -->
+      <div class="card">
+        <h2 class="card-title">💾 数据备份</h2>
+        <p class="card-desc">你的任务、错题（含图片）、笔记都在一个文件里。换电脑或清空浏览器缓存前，先导出保存。</p>
+        <div class="backup-info" id="backup-info"></div>
+        <div class="card-actions">
+          <button id="export-btn" class="btn btn-primary">⬇ 导出数据（下载文件）</button>
+          <input type="file" id="import-input" accept=".json,application/json" hidden>
+          <button id="import-btn" class="btn btn-warn">⬆ 导入数据（从文件恢复）</button>
+        </div>
+        <p class="card-desc" style="margin-top:8px">⚠️ 导入会<strong>覆盖</strong>当前设备上的全部数据，操作前建议先导出现存一份。</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">数据保存在本机浏览器 localStorage 中，可在“统计 → 数据备份”导出文件以防丢失。· 已由 GitHub 自动部署</footer>
+
+  <!-- ============ 图片放大查看（lightbox） ============ -->
+  <div id="lightbox" class="modal hidden">
+    <img id="lightbox-img" src="" alt="放大查看">
+  </div>
+
+  <!-- ============ 复习弹窗（点击查看错题详情） ============ -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-box">
+      <h3 id="modal-title"></h3>
+      <div id="modal-body"></div>
+      <div class="modal-actions">
+        <button id="modal-again" class="btn btn-warn">没记住，明天再来</button>
+        <button id="modal-ok" class="btn btn-primary">记住了，进入下一轮</button>
+        <button id="modal-close" class="btn">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 按顺序引入 JS：先数据层，再调度算法，最后界面逻辑 -->
+  <script>
+
+/* ===== 内联脚本（构建脚本自动嵌入：js/storage.js）===== */
+/* ====================================================
+   storage.js —— 数据层
+   职责：所有数据的读写都经过这里，界面代码不直接碰 localStorage。
+   数据格式：每类数据是一个数组，转成 JSON 字符串后存入 localStorage。
+   ==================================================== */
+
+// localStorage 中使用的 4 个键名（集中定义，避免拼写错误）
+const KEYS = {
+  TASKS: 'lr_tasks',        // 每日学习任务
+  WRONGS: 'lr_wrongs',      // 错题（自带复习状态）
+  NOTES: 'lr_notes',        // 笔记（可选开启复习）
+  DAILY: 'lr_daily'         // 按日期记录的日志（打卡、完成数统计）
+};
+
+/* ---------- 通用的读取 / 保存 ---------- */
+
+// 读取某个键对应的数组；没有数据时返回空数组
+function loadList(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    // JSON 损坏时不能让页面崩溃，返回空数组并提示
+    console.error('读取数据失败:', key, e);
+    return [];
+  }
+}
+
+// 把整个数组保存回 localStorage（JSON.stringify 把对象转成字符串）
+function saveList(key, list) {
+  try {
+    localStorage.setItem(key, JSON.stringify(list));
+    return true;
+  } catch (e) {
+    // 图片以 base64 文本形式存储，体积大时可能超出浏览器配额（约 5MB）
+    console.error('保存失败:', key, e);
+    alert('本地存储空间不足！请删除一些旧图片（错题/笔记中的附图）后重试。');
+    return false;
+  }
+}
+
+/* ---------- 小工具函数（多处共用） ---------- */
+
+// 生成唯一 id：时间戳 + 随机数，足够避免重复
+function genId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+// 返回「今天」的日期字符串，格式 YYYY-MM-DD（本地时区）
+function todayStr() {
+  return fmtDate(new Date());
+}
+
+// 把 Date 对象格式化成 YYYY-MM-DD
+function fmtDate(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0'); // 月份从 0 开始，要 +1
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+// 在指定日期字符串基础上加 n 天，返回新的 YYYY-MM-DD
+function addDays(dateStr, n) {
+  const d = new Date(dateStr + 'T00:00:00');  // T00:00:00 保证按本地时区解析
+  d.setDate(d.getDate() + n);
+  return fmtDate(d);
+}
+
+/* ---------- 每日日志（用于打卡与统计） ---------- */
+// 数据结构：{ '2026-10-27': { checkin: true, tasksDone: 2, reviewsDone: 5 }, ... }
+
+function getDailyMap() {
+  const raw = localStorage.getItem(KEYS.DAILY);
+  try {
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+// 获取（或创建）某一天的日志记录
+function getDaily(dateStr) {
+  const map = getDailyMap();
+  if (!map[dateStr]) map[dateStr] = { checkin: false, tasksDone: 0, reviewsDone: 0 };
+  return map[dateStr];
+}
+
+// 修改某天日志并保存。updater 是一个函数，接收日志对象并修改它
+function updateDaily(dateStr, updater) {
+  const map = getDailyMap();
+  if (!map[dateStr]) map[dateStr] = { checkin: false, tasksDone: 0, reviewsDone: 0 };
+  updater(map[dateStr]);
+  localStorage.setItem(KEYS.DAILY, JSON.stringify(map));
+}
+
+/* ---------- 数据备份：导出 / 导入 ---------- */
+
+const BACKUP_VERSION = 1;   // 备份格式版本号，方便以后升级兼容
+
+// 汇总全部数据，返回一个可直接序列化为 JSON 的对象
+function exportAll() {
+  // 逐个读取原始字符串，空值不写入，保持备份文件精简
+  const data = {};
+  [KEYS.TASKS, KEYS.WRONGS, KEYS.NOTES, KEYS.DAILY].forEach(key => {
+    const raw = localStorage.getItem(key);
+    if (raw) data[key] = raw;
+  });
+  return {
+    app: 'study-review-helper',
+    version: BACKUP_VERSION,
+    exportedAt: new Date().toISOString(),
+    data
+  };
+}
+
+// 校验备份对象是否合法：结构不对就拒绝，避免写入脏数据
+function validateBackup(obj) {
+  if (!obj || typeof obj !== 'object') return '文件内容不是有效的 JSON 对象';
+  if (obj.app !== 'study-review-helper') return '这不是本应用导出的备份文件';
+  if (typeof obj.data !== 'object' || obj.data === null) return '备份缺少 data 字段';
+  // data 内每个键的值都必须是合法的 JSON 字符串
+  const validKeys = [KEYS.TASKS, KEYS.WRONGS, KEYS.NOTES, KEYS.DAILY];
+  let knownKeyCount = 0;   // 命中多少个已知键
+  for (const key of Object.keys(obj.data)) {
+    if (!validKeys.includes(key)) continue;          // 忽略未知键，向后兼容
+    knownKeyCount += 1;
+    try { JSON.parse(obj.data[key]); }               // 能解析才认为合法
+    catch (e) { return '备份字段损坏：' + key; }
+  }
+  // 一个已知键都没有→很可能是损坏/空文件，拒绝导入，防止静默清空全部数据
+  if (knownKeyCount === 0) return '备份文件不包含任何可识别的数据，为避免误清空已拒绝';
+  return null;   // 返回 null 表示校验通过
+}
+
+// 导入前的数据归一化：给错题/笔记补齐缺失的复习字段，
+// 避免手工编辑或旧版本备份导致页面显示 NaN/undefined 等脏数据
+function normalizeImportedList(list) {
+  if (!Array.isArray(list)) return list;
+  list.forEach(item => {
+    if (!item || typeof item !== 'object') return;
+    // 只有需要复习的条目才补齐复习状态
+    const needsReview = ('round' in item) || ('nextReviewDate' in item) || item.reviewEnabled || item.subject !== undefined;
+    if (!needsReview) return;
+    if (typeof item.round !== 'number') item.round = 0;
+    if (typeof item.reviewDone !== 'boolean') item.reviewDone = false;
+    if (!item.nextReviewDate && !item.reviewDone) {
+      // 默认明天开始第一轮（addDays/todayStr 已在本文件上方定义）
+      item.nextReviewDate = addDays(todayStr(), 1);
+    }
+  });
+  return list;
+}
+
+// 将备份写回 localStorage（先清空同类键，再逐个写入）
+// 返回 { ok, error, counts } 供界面提示
+function importAll(obj) {
+  const err = validateBackup(obj);
+  if (err) return { ok: false, error: err };
+  try {
+    const counts = {};
+    [KEYS.TASKS, KEYS.WRONGS, KEYS.NOTES, KEYS.DAILY].forEach(key => {
+      if (obj.data[key]) {
+        let parsed = JSON.parse(obj.data[key]);
+        // 错题与笔记列表做归一化，其余（任务/日志）直接写入
+        if (key === KEYS.WRONGS || key === KEYS.NOTES) parsed = normalizeImportedList(parsed);
+        localStorage.setItem(key, JSON.stringify(parsed));
+        counts[key] = Array.isArray(parsed) ? parsed.length : Object.keys(parsed).length;
+      } else {
+        // 备份里没有的键，清除本地对应数据，做到与备份完全一致
+        localStorage.removeItem(key);
+        counts[key] = 0;
+      }
+    });
+    return { ok: true, counts };
+  } catch (e) {
+    return { ok: false, error: '写入失败：' + e.message };
+  }
+}
+
+
+/* ===== 内联脚本（构建脚本自动嵌入：js/scheduler.js）===== */
+/* ====================================================
+   scheduler.js —— 遗忘曲线复习调度
+   原理：参考艾宾浩斯遗忘曲线，采用「间隔重复」：
+   每答对一次（记住了），下次复习间隔按 1→2→4→7→15→30 天递增；
+   答错一次（没记住），回到同一间隔，明天再来，且轮次不倒退太多。
+   ==================================================== */
+
+// 复习间隔表（天）。第 round 次成功后，使用 INTERVALS[round] 天后复习
+const INTERVALS = [1, 2, 4, 7, 15, 30];
+
+/* ---------- 核心：给条目初始化复习状态 ---------- */
+// 新建错题 / 笔记时调用。明天第一次复习。
+function initReviewState(item) {
+  item.round = 0;                                   // 已完成的复习轮次
+  item.nextReviewDate = addDays(todayStr(), INTERVALS[0]); // 下次复习日期
+  item.reviewDone = false;   // 是否已完成全部复习周期
+  return item;
+}
+
+/* ---------- 判断条目今天是否到期 ---------- */
+function isDueToday(item) {
+  if (item.reviewDone || !item.nextReviewDate) return false;
+  // 到期包括「逾期」的情况：日期 <= 今天
+  return item.nextReviewDate <= todayStr();
+}
+
+/* ---------- 复习结果：记住了 → 进入下一轮 ---------- */
+// 返回更新后的条目；调用方负责保存
+function markRemembered(item) {
+  item.round += 1;
+  if (item.round >= INTERVALS.length) {
+    // 完成全部 6 轮 → 毕业，不再安排复习
+    item.reviewDone = true;
+    item.nextReviewDate = null;
+  } else {
+    item.nextReviewDate = addDays(todayStr(), INTERVALS[item.round]);
+  }
+  // 在每日日志中累加今天的复习完成数（用于统计）
+  updateDaily(todayStr(), d => { d.reviewsDone += 1; });
+  return item;
+}
+
+/* ---------- 复习结果：没记住 → 明天再来 ---------- */
+// 轮次回退一格（最低为 0），间隔缩短，加强记忆
+function markForgot(item) {
+  item.round = Math.max(0, item.round - 1);
+  item.nextReviewDate = addDays(todayStr(), INTERVALS[item.round]);
+  return item;
+}
+
+/* ---------- 计算下次复习日（仅用于界面提示文案） ---------- */
+// 传入当前轮次，返回「X 天后」的描述
+function describeNextRound(round) {
+  if (round >= INTERVALS.length - 1) return '毕业（不再复习）';
+  return `${INTERVALS[round]} 天后`;
+}
+
+
+/* ===== 内联脚本（构建脚本自动嵌入：js/app.js）===== */
+/* ====================================================
+   app.js —— 界面逻辑
+   职责：监听用户操作 → 调用 storage / scheduler 处理数据 → 重新渲染页面。
+   结构：1. 通用工具  2. 页签切换  3. 今日页  4. 错题本页
+        5. 笔记页  6. 统计页  7. 复习弹窗  8. 初始化
+   ==================================================== */
+
+/* ========== 1. 通用工具 ========== */
+
+// 通过 id 获取页面元素（简写，避免到处写 document.getElementById）
+const $ = (id) => document.getElementById(id);
+
+// 把文本安全地插入 HTML：转义 < > & " 等字符，
+// 防止用户输入的内容破坏页面结构（基础 XSS 防护）
+function esc(str) {
+  return String(str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// 显示简短提示气泡（复用同一个元素）
+function toast(msg) {
+  let el = $('toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'toast';
+    el.style.cssText = 'position:fixed;left:50%;bottom:30px;transform:translateX(-50%);' +
+      'background:#2c3040;color:#fff;padding:10px 20px;border-radius:8px;' +
+      'font-size:14px;z-index:200;opacity:0;transition:opacity .3s;';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.style.opacity = '1';
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => { el.style.opacity = '0'; }, 1800);
+}
+
+/* ---------- 图片处理工具 ---------- */
+
+// 读取用户选择的图片文件 → 压缩 → 返回 base64 字符串的 Promise
+// 压缩目的：手机/相机原图动辄几 MB，而 localStorage 总容量只有约 5MB，
+// 用 canvas 把长边缩到 1000px 以内再转 JPEG，单张一般只剩 100~300KB
+function readAndCompressImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('文件读取失败'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('图片解析失败'));
+      img.onload = () => {
+        const MAX_SIZE = 1000;   // 长边上限（像素）
+        const scale = Math.min(1, MAX_SIZE / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        // quality 0.75：兼顾清晰度和体积；PNG 透明背景会变成白底，对学习笔记可接受
+        resolve(canvas.toDataURL('image/jpeg', 0.75));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);   // 读成 dataURL，交给 Image 解码后再压缩
+  });
+}
+
+// 把选中的文件添加到表单预览区（previewId）；重复选择会累加
+function addFilesToPreview(files, previewId) {
+  const box = $(previewId);
+  Array.from(files).forEach(async file => {
+    if (!file.type.startsWith('image/')) { toast('只能上传图片文件'); return; }
+    try {
+      const dataUrl = await readAndCompressImage(file);
+      const div = document.createElement('div');
+      div.className = 'preview-item';
+      const img = document.createElement('img');
+      img.src = dataUrl;
+      img.title = file.name;
+      const del = document.createElement('button');   // 预览区内可移除，避免误传
+      del.className = 'preview-del';
+      del.textContent = '✕';
+      del.addEventListener('click', () => div.remove());
+      div.append(img, del);
+      box.appendChild(div);
+    } catch (e) {
+      toast('图片处理失败：' + e.message);
+    }
+  });
+}
+
+// 收集预览区里已暂存的图片 base64 数组（表单提交时使用）
+function collectPreviewImages(previewId) {
+  return Array.from($(previewId).querySelectorAll('img')).map(img => img.src);
+}
+
+// 渲染一排缩略图 + 删除按钮（错题/笔记卡片内共用）
+// containerId：存放按钮的容器 id；key/listKey：定位到具体条目
+function renderImgThumbs(images, containerId, key, listKey) {
+  const box = $(containerId);
+  if (!box || !images || !images.length) return;
+  box.innerHTML = `
+    <div class="thumb-row">
+      ${images.map((src, idx) => `
+        <div class="thumb-item">
+          <img src="${src}" class="thumb zoomable" data-key="${key}" data-idx="${idx}" alt="附图${idx + 1}">
+          <button class="preview-del thumb-del" data-key="${key}" data-idx="${idx}" title="删除这张图">✕</button>
+        </div>`).join('')}
+    </div>`;
+  // 删除单张附图 → 同步写回存储并刷新界面
+  box.querySelectorAll('.thumb-del').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!confirm('删除这张图片？')) return;
+      const all = loadList(listKey);
+      const item = all.find(x => x.id === btn.dataset.key);
+      if (item && item.images) {
+        item.images.splice(Number(btn.dataset.idx), 1);
+        if (!item.images.length) delete item.images;   // 空数组不占存储
+        if (saveList(listKey, all)) {
+          toast('图片已删除');
+          renderWrongs(); renderNotes(); renderReviewQueue();
+        }
+      }
+    });
+  });
+  bindZoom(box);
+}
+
+// 给容器内的缩略图绑定点击放大（lightbox）
+function bindZoom(scope) {
+  scope.querySelectorAll('.zoomable').forEach(img => {
+    img.addEventListener('click', () => {
+      $('lightbox-img').src = img.src;
+      $('lightbox').classList.remove('hidden');
+    });
+  });
+}
+
+function setupLightbox() {
+  // 点击任意处关闭放大视图
+  $('lightbox').addEventListener('click', () => {
+    $('lightbox').classList.add('hidden');
+    $('lightbox-img').src = '';
+  });
+}
+
+/* ========== 2. 页签切换 ========== */
+
+function setupTabs() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      // 先清掉所有页签和页面的 active/hidden 状态
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+      // 再激活被点击的页签和它对应的页面
+      btn.classList.add('active');
+      $(btn.dataset.view).classList.remove('hidden');
+      renderAll();   // 切页时刷新数据，保证内容是最新的
+    });
+  });
+}
+
+/* ========== 3. 今日页：学习清单 + 到期复习 ========== */
+
+// 渲染今日日期，例如「2026年10月27日 星期二」
+function renderTodayDate() {
+  const weekNames = ['日', '一', '二', '三', '四', '五', '六'];
+  const d = new Date();
+  $('today-date').textContent =
+    `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日 星期${weekNames[d.getDay()]}`;
+}
+
+// 渲染今日任务列表（只显示今天的任务）
+function renderTasks() {
+  const tasks = loadList(KEYS.TASKS).filter(t => t.date === todayStr());
+  const ul = $('task-list');
+  const empty = $('task-empty');
+
+  ul.innerHTML = tasks.map(t => `
+    <li class="${t.done ? 'task-done' : ''}">
+      <input type="checkbox" data-id="${t.id}" ${t.done ? 'checked' : ''}>
+      <span class="task-text">${esc(t.text)}</span>
+      <button class="btn-danger task-del" data-id="${t.id}" title="删除">✕</button>
+    </li>`).join('');
+
+  empty.style.display = tasks.length ? 'none' : 'block';
+
+  // 勾选 / 取消勾选 → 更新完成状态，并同步今日日志的计数
+  ul.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const all = loadList(KEYS.TASKS);
+      const task = all.find(t => t.id === cb.dataset.id);
+      if (!task) return;
+      task.done = cb.checked;
+      saveList(KEYS.TASKS, all);
+      updateDaily(todayStr(), d => {
+        d.tasksDone += cb.checked ? 1 : -1;
+        if (d.tasksDone < 0) d.tasksDone = 0;
+        if (cb.checked) d.checkin = true;   // 完成任务自动视为打卡
+      });
+      renderTasks();
+      renderStats();
+    });
+  });
+
+  // 删除按钮
+  ul.querySelectorAll('.task-del').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const all = loadList(KEYS.TASKS);
+      const task = all.find(t => t.id === btn.dataset.id);
+      if (task && task.done) {
+        updateDaily(todayStr(), d => { d.tasksDone = Math.max(0, d.tasksDone - 1); });
+      }
+      saveList(KEYS.TASKS, all.filter(t => t.id !== btn.dataset.id));
+      renderTasks();
+    });
+  });
+}
+
+// 添加任务（表单提交）
+function setupTaskForm() {
+  $('task-form').addEventListener('submit', e => {
+    e.preventDefault();   // 阻止浏览器默认的表单跳转行为
+    const text = $('task-input').value.trim();
+    if (!text) return;
+    const all = loadList(KEYS.TASKS);
+    all.push({ id: genId(), date: todayStr(), text, done: false });
+    saveList(KEYS.TASKS, all);
+    $('task-input').value = '';
+    renderTasks();
+  });
+}
+
+// 收集今天到期的所有复习项（错题 + 开了复习的笔记）
+// 返回值形如 { type: 'wrong' | 'note', item }
+function collectDueReviews() {
+  const due = [];
+  loadList(KEYS.WRONGS).forEach(w => { if (isDueToday(w)) due.push({ type: 'wrong', item: w }); });
+  loadList(KEYS.NOTES).forEach(n => {
+    if (n.reviewEnabled && isDueToday(n)) due.push({ type: 'note', item: n });
+  });
+  // 逾期最久的排最前（优先补上欠下的复习）
+  due.sort((a, b) => (a.item.nextReviewDate < b.item.nextReviewDate) ? -1 : 1);
+  return due;
+}
+
+// 渲染今日复习队列
+function renderReviewQueue() {
+  const due = collectDueReviews();
+  $('review-count').textContent = due.length;
+  $('review-empty').style.display = due.length ? 'none' : 'block';
+
+  $('review-list').innerHTML = due.map(({ type, item }) => {
+    const overdue = item.nextReviewDate < todayStr();
+    const title = type === 'wrong' ? esc(item.subject) : esc(item.title);
+    const preview = type === 'wrong' ? esc(item.question) : esc(item.content);
+    const imgBadge = item.images && item.images.length
+      ? `<span class="tag">🖼 ${item.images.length} 图</span>` : '';
+    return `
+      <div class="content-card due">
+        <div class="card-head">
+          <span class="subject-tag">${type === 'wrong' ? '错题' : '笔记'}：${title}</span>
+          <span class="round-info">第 ${item.round + 1}/${INTERVALS.length} 轮${overdue ? ' · ⚠️已逾期' : ''}</span>
+          ${imgBadge}
+        </div>
+        <div class="card-line">${preview.length > 80 ? preview.slice(0, 80) + '…' : preview}</div>
+        <div class="card-actions">
+          <button class="btn btn-sm btn-primary review-open" data-type="${type}" data-id="${item.id}">开始复习</button>
+        </div>
+      </div>`;
+  }).join('');
+
+  // 点击「开始复习」→ 打开弹窗
+  document.querySelectorAll('.review-open').forEach(btn => {
+    btn.addEventListener('click', () => openReviewModal(btn.dataset.type, btn.dataset.id));
+  });
+}
+
+/* ========== 4. 错题本 ========== */
+
+// 渲染错题归档列表（支持关键词过滤）
+function renderWrongs() {
+  const keyword = $('wrong-search').value.trim().toLowerCase();
+  const all = loadList(KEYS.WRONGS);
+  const list = keyword
+    ? all.filter(w => (w.subject + w.question + w.thinking).toLowerCase().includes(keyword))
+    : all;
+
+  // 新记录的排前面
+  list.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+
+  $('wrong-list').innerHTML = list.map(w => {
+    const status = w.reviewDone
+      ? '<span class="tag">✅ 已毕业</span>'
+      : `<span class="next-review">下次复习：${w.nextReviewDate}</span>`;
+    const imgBadge = w.images && w.images.length
+      ? `<span class="tag">🖼 ${w.images.length} 图</span>` : '';
+    return `
+      <div class="content-card">
+        <div class="card-head">
+          <span class="subject-tag">${esc(w.subject)}</span>
+          <span class="round-info">第 ${w.round + 1}/${INTERVALS.length} 轮</span>
+          ${status}${imgBadge}
+        </div>
+        <div class="card-line"><span class="label">错题</span>${esc(w.question)}</div>
+        <div class="card-line"><span class="label">思路</span>${esc(w.thinking)}</div>
+        <div id="wrong-imgs-${w.id}"></div>
+        <div class="card-actions">
+          ${w.reviewDone ? '' : `<button class="btn btn-sm wrong-attach" data-id="${w.id}">＋附图</button>`}
+          <button class="btn btn-sm wrong-del" data-id="${w.id}">删除</button>
+        </div>
+        <input type="file" accept="image/*" multiple hidden class="attach-input" data-id="${w.id}">
+      </div>`;
+  }).join('');
+
+  $('wrong-list-empty').style.display = list.length ? 'none' : 'block';
+
+  // 逐条渲染附图缩略图，并绑定「补图 / 删除」交互
+  list.forEach(w => {
+    renderImgThumbs(w.images, `wrong-imgs-${w.id}`, w.id, KEYS.WRONGS);
+
+    const attachBtn = document.querySelector(`.wrong-attach[data-id="${w.id}"]`);
+    const fileInput = document.querySelector(`.attach-input[data-id="${w.id}"]`);
+    if (attachBtn && fileInput) {
+      attachBtn.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', async () => {
+        const files = Array.from(fileInput.files);
+        fileInput.value = '';           // 允许重复选同一个文件
+        if (!files.length) return;
+        const all = loadList(KEYS.WRONGS);
+        const item = all.find(x => x.id === w.id);
+        if (!item) return;
+        const imgs = item.images || (item.images = []);
+        for (const f of files) {
+          if (!f.type.startsWith('image/')) continue;
+          try { imgs.push(await readAndCompressImage(f)); }
+          catch (e) { toast('图片处理失败：' + e.message); }
+        }
+        if (saveList(KEYS.WRONGS, all)) {
+          toast('已添加 ' + imgs.length + ' 张图片（共）');
+          renderWrongs();
+        }
+      });
+    }
+  });
+
+  $('wrong-list').querySelectorAll('.wrong-del').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!confirm('确定删除这道错题吗？')) return;
+      saveList(KEYS.WRONGS, loadList(KEYS.WRONGS).filter(w => w.id !== btn.dataset.id));
+      renderWrongs();
+      renderReviewQueue();
+    });
+  });
+}
+
+// 新增错题（提交后立即按遗忘曲线安排第一次复习）
+function setupWrongForm() {
+  $('wrong-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const item = initReviewState({
+      id: genId(),
+      createdAt: todayStr(),
+      subject: $('wrong-subject').value.trim(),
+      question: $('wrong-question').value.trim(),
+      thinking: $('wrong-thinking').value.trim(),
+      images: collectPreviewImages('wrong-img-preview')   // 表单预览区的图片随错题保存
+    });
+    if (!item.subject || !item.question || !item.thinking) return;
+    if (!item.images.length) delete item.images;         // 没图就不存空字段
+    const all = loadList(KEYS.WRONGS);
+    all.push(item);
+    if (!saveList(KEYS.WRONGS, all)) return;             // 容量不足时不清空表单
+    $('wrong-form').reset();
+    $('wrong-img-preview').innerHTML = '';               // reset() 不会清空预览区，手动清
+    toast('已保存，明天开始第一轮复习');
+    renderWrongs();
+    renderReviewQueue();
+  });
+  $('wrong-search').addEventListener('input', renderWrongs);
+
+  // 表单内的图片选择：隐藏 input 由按钮触发点击
+  $('wrong-img-btn').addEventListener('click', () => $('wrong-img-input').click());
+  $('wrong-img-input').addEventListener('change', e => {
+    addFilesToPreview(e.target.files, 'wrong-img-preview');
+    e.target.value = '';   // 清空选择，下次选同一文件也能触发
+  });
+}
+
+/* ========== 5. 笔记页 ========== */
+
+function renderNotes() {
+  const keyword = $('note-search').value.trim().toLowerCase();
+  const all = loadList(KEYS.NOTES);
+  const list = keyword
+    ? all.filter(n => (n.title + n.content + n.tags).toLowerCase().includes(keyword))
+    : all;
+
+  list.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+
+  $('note-list').innerHTML = list.map(n => {
+    // 标签字符串按空格拆开，逐个渲染成小标签
+    const tagHtml = n.tags.split(/\s+/).filter(Boolean)
+      .map(t => `<span class="tag">${esc(t)}</span>`).join(' ');
+    const reviewInfo = n.reviewEnabled
+      ? (n.reviewDone
+          ? '<span class="tag">✅ 复习毕业</span>'
+          : `<span class="next-review">复习中 · 下次：${n.nextReviewDate}</span>`)
+      : '';
+    const imgBadge = n.images && n.images.length
+      ? `<span class="tag">🖼 ${n.images.length} 图</span>` : '';
+    return `
+      <div class="content-card">
+        <div class="card-head">
+          <strong>${esc(n.title)}</strong>
+          ${tagHtml}
+          ${reviewInfo}${imgBadge}
+        </div>
+        <div class="card-line">${esc(n.content)}</div>
+        <div id="note-imgs-${n.id}"></div>
+        <div class="card-actions">
+          ${n.reviewEnabled ? '' :
+            `<button class="btn btn-sm note-enable-review" data-id="${n.id}">加入复习</button>`}
+          <button class="btn btn-sm note-attach" data-id="${n.id}">＋附图</button>
+          <button class="btn btn-sm note-del" data-id="${n.id}">删除</button>
+        </div>
+        <input type="file" accept="image/*" multiple hidden class="attach-input" data-id="${n.id}">
+      </div>`;
+  }).join('');
+
+  $('note-list-empty').style.display = list.length ? 'none' : 'block';
+
+  // 逐条渲染附图缩略图，并绑定「补图」交互（与错题本同一套逻辑）
+  list.forEach(n => {
+    renderImgThumbs(n.images, `note-imgs-${n.id}`, n.id, KEYS.NOTES);
+
+    const attachBtn = document.querySelector(`.note-attach[data-id="${n.id}"]`);
+    const fileInput = document.querySelector(`.attach-input[data-id="${n.id}"]`);
+    if (attachBtn && fileInput) {
+      attachBtn.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', async () => {
+        const files = Array.from(fileInput.files);
+        fileInput.value = '';
+        if (!files.length) return;
+        const all = loadList(KEYS.NOTES);
+        const item = all.find(x => x.id === n.id);
+        if (!item) return;
+        const imgs = item.images || (item.images = []);
+        for (const f of files) {
+          if (!f.type.startsWith('image/')) continue;
+          try { imgs.push(await readAndCompressImage(f)); }
+          catch (e) { toast('图片处理失败：' + e.message); }
+        }
+        if (saveList(KEYS.NOTES, all)) {
+          toast('已添加图片');
+          renderNotes();
+        }
+      });
+    }
+  });
+
+  // 事后把普通笔记加入复习计划
+  $('note-list').querySelectorAll('.note-enable-review').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const all = loadList(KEYS.NOTES);
+      const note = all.find(n => n.id === btn.dataset.id);
+      if (note) {
+        note.reviewEnabled = true;
+        initReviewState(note);
+        saveList(KEYS.NOTES, all);
+        toast('已加入复习计划');
+        renderNotes();
+        renderReviewQueue();
+      }
+    });
+  });
+
+  $('note-list').querySelectorAll('.note-del').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!confirm('确定删除这条笔记吗？')) return;
+      saveList(KEYS.NOTES, loadList(KEYS.NOTES).filter(n => n.id !== btn.dataset.id));
+      renderNotes();
+      renderReviewQueue();
+    });
+  });
+}
+
+function setupNoteForm() {
+  $('note-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const note = {
+      id: genId(),
+      createdAt: todayStr(),
+      title: $('note-title').value.trim(),
+      tags: $('note-tags').value.trim(),
+      content: $('note-content').value.trim(),
+      reviewEnabled: $('note-review').checked,
+      images: collectPreviewImages('note-img-preview')
+    };
+    if (!note.title || !note.content) return;
+    if (!note.images.length) delete note.images;
+    if (note.reviewEnabled) initReviewState(note);   // 勾选了复习才初始化状态
+    const all = loadList(KEYS.NOTES);
+    all.push(note);
+    if (!saveList(KEYS.NOTES, all)) return;
+    $('note-form').reset();
+    $('note-img-preview').innerHTML = '';
+    toast('笔记已保存');
+    renderNotes();
+    renderReviewQueue();
+  });
+  $('note-search').addEventListener('input', renderNotes);
+
+  // 表单内的图片选择
+  $('note-img-btn').addEventListener('click', () => $('note-img-input').click());
+  $('note-img-input').addEventListener('change', e => {
+    addFilesToPreview(e.target.files, 'note-img-preview');
+    e.target.value = '';
+  });
+}
+
+/* ========== 6. 统计页 ========== */
+
+// 计算从今天往前数、连续打卡的天数
+function calcStreak() {
+  const map = getDailyMap();
+  let streak = 0;
+  let date = todayStr();
+  // 循环检查每一天是否打卡，直到断掉为止（最多查 3660 天，防止死循环）
+  for (let i = 0; i < 3660; i++) {
+    if (map[date] && map[date].checkin) {
+      streak += 1;
+      date = addDays(date, -1);
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+function renderStats() {
+  const tasks = loadList(KEYS.TASKS);
+  const wrongs = loadList(KEYS.WRONGS);
+  const notes = loadList(KEYS.NOTES);
+  const map = getDailyMap();
+
+  const doneCount = tasks.filter(t => t.done).length;
+  const rate = tasks.length ? Math.round(doneCount / tasks.length * 100) : 0;
+  const totalDays = Object.values(map).filter(d => d.checkin).length;
+  const reviewTotal = Object.values(map).reduce((sum, d) => sum + d.reviewsDone, 0);
+
+  $('stat-streak').textContent = calcStreak();
+  $('stat-total-days').textContent = totalDays;
+  $('stat-task-rate').textContent = rate + '%';
+  $('stat-wrong').textContent = wrongs.length;
+  $('stat-review-done').textContent = reviewTotal;
+  $('stat-notes').textContent = notes.length;
+
+  renderCalendar(map);
+  renderCheckin(map);
+  renderBackupInfo();
+}
+
+// 最近 30 天日历：按当天「完成任务 + 复习次数」决定颜色深度
+function renderCalendar(map) {
+  const cells = [];
+  for (let i = 29; i >= 0; i--) {
+    const date = addDays(todayStr(), -i);
+    const d = map[date];
+    const score = d ? d.tasksDone + d.reviewsDone : 0;
+    let level = '';
+    if (score >= 8) level = 'cal-3';
+    else if (score >= 4) level = 'cal-2';
+    else if (score >= 1) level = 'cal-1';
+    cells.push(`<div class="cal-cell ${level}" title="${date}：任务 ${d ? d.tasksDone : 0} / 复习 ${d ? d.reviewsDone : 0}"></div>`);
+  }
+  $('calendar').innerHTML = cells.join('');
+}
+
+// 打卡按钮状态与点击
+function renderCheckin(map) {
+  const today = map[todayStr()] || { checkin: false };
+  const btn = $('checkin-btn');
+  const desc = $('checkin-desc');
+  if (today.checkin) {
+    btn.disabled = true;
+    btn.textContent = '今日已打卡 ✅';
+    desc.textContent = '今天已经完成过学习任务了，继续保持！';
+  } else {
+    btn.disabled = false;
+    btn.textContent = '打卡';
+    desc.textContent = '完成学习或复习后打个卡，记录自己的一天。';
+  }
+}
+
+function setupCheckin() {
+  $('checkin-btn').addEventListener('click', () => {
+    updateDaily(todayStr(), d => { d.checkin = true; });
+    toast('打卡成功 🔥');
+    renderStats();
+  });
+}
+
+/* ========== 6.5 数据备份：导出 / 导入 ========== */
+
+// 显示当前数据概览（多少条 + 占用空间），提醒用户备份
+function renderBackupInfo() {
+  const el = $('backup-info');
+  if (!el) return;
+  const tasks = loadList(KEYS.TASKS).length;
+  const wrongs = loadList(KEYS.WRONGS).length;
+  const notes = loadList(KEYS.NOTES).length;
+  const days = Object.keys(getDailyMap()).length;
+  // 估算 localStorage 占用（所有相关键的字符总长，1 字符 ≈ 1 字节）
+  let bytes = 0;
+  [KEYS.TASKS, KEYS.WRONGS, KEYS.NOTES, KEYS.DAILY].forEach(k => {
+    const raw = localStorage.getItem(k);
+    if (raw) bytes += raw.length;
+  });
+  const kb = (bytes / 1024).toFixed(1);
+  el.innerHTML = `当前：任务 ${tasks} 条 · 错题 ${wrongs} 条 · 笔记 ${notes} 条 · 记录 ${days} 天　|　占用约 ${kb} KB（浏览器上限约 5 MB）`;
+}
+
+// 导出：把全量数据生成一个 JSON 文件下载
+function doExport() {
+  const payload = exportAll();
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  // 文件名带上日期，方便区分多份备份
+  a.href = url;
+  a.download = `学习备份-${todayStr()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);   // 释放临时对象，避免内存泄漏
+  toast('备份文件已下载');
+}
+
+// 导入：读取文件 → 预览摘要并二次确认 → 写回→刷新
+function handleImportFile(file) {
+  const reader = new FileReader();
+  reader.onerror = () => toast('文件读取失败');
+  reader.onload = () => {
+    let obj;
+    try {
+      obj = JSON.parse(reader.result);
+    } catch (e) {
+      toast('文件不是合法的 JSON，导入取消');
+      return;
+    }
+    // 先校验并预览，导前告知用户数据量，避免误覆盖
+    const err = validateBackup(obj);
+    if (err) { toast('导入失败：' + err); return; }
+    const d = obj.data || {};
+    const count = (k) => { try { const p = JSON.parse(d[k] || '[]'); return Array.isArray(p) ? p.length : Object.keys(p).length; } catch { return 0; } };
+    const msg = `确定导入以下数据并覆盖当前设备吗？\n`
+      + `导出时间：${obj.exportedAt ? obj.exportedAt.slice(0, 10) : '未知'}\n`
+      + `任务 ${count(KEYS.TASKS)} · 错题 ${count(KEYS.WRONGS)} · 笔记 ${count(KEYS.NOTES)} · 日志 ${count(KEYS.DAILY)} 天`;
+    if (!confirm(msg)) { toast('已取消导入'); return; }
+
+    const result = importAll(obj);
+    if (!result.ok) { toast('导入失败：' + result.error); return; }
+    toast('导入成功，数据已恢复');
+    renderAll();
+  };
+  reader.readAsText(file);
+}
+
+function setupBackup() {
+  $('export-btn').addEventListener('click', doExport);
+  $('import-btn').addEventListener('click', () => $('import-input').click());
+  $('import-input').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (file) handleImportFile(file);
+    e.target.value = '';   // 清空，允许重复选同一文件
+  });
+}
+
+/* ========== 7. 复习弹窗 ========== */
+
+// 当前弹窗正在复习的对象：{ type, id } 或 null
+let currentReview = null;
+
+function openReviewModal(type, id) {
+  const list = type === 'wrong' ? loadList(KEYS.WRONGS) : loadList(KEYS.NOTES);
+  const item = list.find(x => x.id === id);
+  if (!item) return;
+
+  currentReview = { type, id };
+  $('modal-title').textContent = (type === 'wrong' ? '❌ 错题复习 · ' : '📄 笔记复习 · ')
+    + (type === 'wrong' ? item.subject : item.title);
+
+  // 组装弹窗正文：错题显示「题目 + 答案」，笔记显示「标签 + 内容」
+  let body = '';
+  if (type === 'wrong') {
+    body = `<div class="card-line"><span class="label">错题</span>${esc(item.question)}</div>
+            <div class="card-line"><span class="label">当时的思路（先自己回忆，再看这里）</span>${esc(item.thinking)}</div>`;
+  } else {
+    body = `<div class="card-line">${esc(item.content)}</div>`;
+  }
+  // 附图：复习时一并重申题目截图等内容
+  if (item.images && item.images.length) {
+    body += `<div class="modal-imgs">
+      <span class="label">附图（点击可放大）</span>
+      ${item.images.map(src => `<img src="${src}" class="modal-img zoomable">`).join('')}
+    </div>`;
+  }
+  body += `<p class="next-review" style="margin-top:10px">当前第 ${item.round + 1}/${INTERVALS.length} 轮复习</p>`;
+  $('modal-body').innerHTML = body;
+
+  // 弹窗内的缩略图也能点击放大
+  bindZoom($('modal-body'));
+
+  $('modal').classList.remove('hidden');
+}
+
+function closeReviewModal() {
+  $('modal').classList.add('hidden');
+  currentReview = null;
+}
+
+// 弹窗按钮：记住 / 忘记 / 关闭
+function setupModal() {
+  $('modal-close').addEventListener('click', closeReviewModal);
+
+  // 点击遮罩空白处也可关闭
+  $('modal').addEventListener('click', e => {
+    if (e.target === $('modal')) closeReviewModal();
+  });
+
+  $('modal-ok').addEventListener('click', () => {
+    if (!currentReview) return;
+    applyReviewResult(markRemembered);
+  });
+
+  $('modal-again').addEventListener('click', () => {
+    if (!currentReview) return;
+    applyReviewResult(markForgot);
+  });
+}
+
+// 公共逻辑：把复习结果写回数据并刷新界面
+// updateFn 是 scheduler 里的 markRemembered / markForgot
+function applyReviewResult(updateFn) {
+  const { type, id } = currentReview;
+  const key = type === 'wrong' ? KEYS.WRONGS : KEYS.NOTES;
+  const all = loadList(key);
+  const item = all.find(x => x.id === id);
+  if (item) {
+    updateFn(item);
+    saveList(key, all);
+    // 完成任务自动打卡
+    updateDaily(todayStr(), d => { d.checkin = true; });
+    toast(updateFn === markRemembered ? '干杯！已安排下一轮复习' : '没关系，明天再来一次');
+  }
+  closeReviewModal();
+  renderReviewQueue();
+  renderWrongs();
+  renderNotes();
+  renderStats();
+}
+
+/* ========== 8. 初始化入口 ========== */
+
+function renderAll() {
+  renderTodayDate();
+  renderTasks();
+  renderReviewQueue();
+  renderWrongs();
+  renderNotes();
+  renderStats();
+}
+
+// 浏览器加载完 HTML 后自动执行，把整个应用启动起来
+document.addEventListener('DOMContentLoaded', () => {
+  setupTabs();
+  setupTaskForm();
+  setupWrongForm();
+  setupNoteForm();
+  setupCheckin();
+  setupBackup();
+  setupModal();
+  setupLightbox();
+  renderAll();
+});
+
+
+</script>
+  
+  
+</body>
+</html>
